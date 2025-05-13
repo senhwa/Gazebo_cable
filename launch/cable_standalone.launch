@@ -1,25 +1,27 @@
 <launch>
   <!-- Launch Gazebo with an empty world -->
-  <include file="$(find gazebo_ros)/launch/empty_world.launch">
+  <!-- <include file="$(find gazebo_ros)/launch/empty_world.launch">
     <arg name="paused" value="false"/>
     <arg name="use_sim_time" value="true"/>
     <arg name="gui" value="true"/>
     <arg name="headless" value="false"/>
     <arg name="debug" value="false"/>
-  </include>
+  </include> -->
 
   <rosparam param="/cable_PID">
-    kP: 7.0 
-    kI: 0.002
-    kD: 0.01
+    kP: 2.0 
+    kI: 0.001
+    kD: 0.5
   </rosparam>
 
   <!-- Load the URDF into the ROS Parameter Server -->
-  <param name="robot_description" command="$(find xacro)/xacro --inorder '$(find cable_sim)/urdf/cable_model.urdf.xacro'" />
+  <group ns="cable">
+    <param name="robot_description"
+          command="$(find xacro)/xacro --inorder '$(find cable_sim)/urdf/cable_model.urdf.xacro'
+                  namespace:=cable inertial_reference_frame:=world"/>
 
-  <!-- Run a python script to the send a service call to gazebo_ros to spawn a URDF robot -->
-  <node name="urdf_spawner" pkg="gazebo_ros" type="spawn_model" respawn="false" output="screen"
-    args="-urdf -model cable -param robot_description"/>
-
+    <node name="urdf_spawner" pkg="uuv_descriptions" type="spawn_model" respawn="false" output="screen"
+            args="-urdf -model cable -param /cable/robot_description"/>
+  </group>
     <node name="cable_control" pkg="cable_sim" type="cable_controller_test_square.py" output="screen" />
 </launch>

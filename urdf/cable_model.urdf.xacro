@@ -5,10 +5,10 @@
   <xacro:property name="gray_color" value="0.5 0.5 0.5 1" />
   <xacro:property name="sphere_radius" value="0.003" />
   <xacro:property name="cylinder_radius" value="0.003" />
-  <xacro:property name="cylinder_length" value="0.01" />
-  <xacro:property name="cable_height" value="2" />
-  <xacro:property name="damping" value="0.1" />
-  <xacro:property name="friction" value="0.0" />
+  <xacro:property name="cylinder_length" value="0.58" />
+  <xacro:property name="cable_height" value="-40" />
+  <xacro:property name="damping" value="0.5" />
+  <xacro:property name="friction" value="0.1" />
 
   <material name="blue">
     <color rgba="${blue_color}"/>
@@ -21,36 +21,36 @@
   <!-- World link (invisible) -->
   <link name="world"/>
 
-  <link name="base_link">
+  <link name="mooring/base_link">
     <visual>
       <geometry>
-        <box size="${4 * cylinder_length} ${4 * cylinder_length} ${2 * cylinder_length}"/>
+        <box size="${0.5* cylinder_length} ${0.5* cylinder_length} ${0.5* cylinder_length}"/>
       </geometry>
       <material name="red">
         <color rgba="${red_color}"/>
       </material>
     </visual>
-    <collision>
+    <!-- <collision>
       <geometry>
         <box size="${4 * cylinder_length} ${4 * cylinder_length} ${2 * cylinder_length}"/>
       </geometry>
-    </collision>
+    </collision> -->
     <inertial>
       <mass value="0.1"/>
       <inertia ixx="0.01" ixy="0" ixz="0" iyy="0.01" iyz="0" izz="0.01"/>
     </inertial>
   </link>
 
-  <gazebo reference="base_link">
-    <material>Gazebo/Gray</material>
-    <selfCollide>true</selfCollide>
+  <gazebo reference="mooring/base_link">
+    <material>Gazebo/gray</material>
+    <selfCollide>false</selfCollide>
   </gazebo>
 
   <!-- Fixed joint to connect base_link to world -->
   <joint name="fixed_to_world" type="fixed">
     <parent link="world"/>
-    <child link="base_link"/>
-    <origin xyz="0 0 ${cable_height}" rpy="1.57 0 0"/>
+    <child link="mooring/base_link"/>
+    <origin xyz="33 0 ${cable_height}" rpy="1.57 0 1.57"/>
   </joint>
 
   <!-- Cable segment macro -->
@@ -63,21 +63,21 @@
         </geometry>
         <material name="gray"/>
       </visual>
-      <collision>
+      <!-- <collision>
         <geometry>
           <sphere radius="${sphere_radius}"/>
         </geometry>
-      </collision>
+      </collision> -->
       <inertial>
-        <mass value="0.005"/>
-        <inertia ixx="0.0001" ixy="0" ixz="0" iyy="0.0001" iyz="0" izz="0.0001"/>
+        <mass value="0.01"/>
+        <inertia ixx="0.01" ixy="0" ixz="0" iyy="0.01" iyz="0" izz="0.01"/>
       </inertial>
     </link>
 
   <joint name="${parent}_to_${name}_sphere" type="revolute">
     <parent link="${parent}"/>
     <child link="${name}_sphere"/>
-    <origin xyz="0 0 ${-cylinder_length - 2 * sphere_radius}" rpy="0 0 0"/>
+    <origin xyz="0 0 ${-cylinder_length - 2 * sphere_radius}" rpy="0 0 1.57"/>
     <axis xyz="0 1 0"/>
     <limit lower="-3.14" upper="3.14" effort="10" velocity="3"/>
     <dynamics damping="${damping}" friction="${friction}"/>
@@ -87,10 +87,10 @@
   <link name="${name}_cylinder">
     <visual>
       <geometry>
-        <cylinder length="${cylinder_length}" radius="${cylinder_radius}"/>
+        <mesh filename="file://$(find cable_sim)/meshes/chain.stl" scale="0.001 0.001 0.001" />
       </geometry>
-      <origin xyz="0 0 ${-cylinder_length/2- sphere_radius}" rpy="0 0 0"/>
-      <material name="blue"/>
+      <origin xyz="0 0 ${-cylinder_length/2- sphere_radius}" rpy="0 1.57 0"/>
+      <material name="gray"/>
     </visual>
     <collision>
       <geometry>
@@ -99,8 +99,8 @@
       <origin xyz="0 0 ${-cylinder_length/2- sphere_radius}" rpy="0 0 0"/>
     </collision>
     <inertial>
-      <mass value="0.01"/>
-      <inertia ixx="0.001" ixy="0" ixz="0" iyy="0.001" iyz="0" izz="0.001"/>
+      <mass value="0.001"/>
+      <inertia ixx="0.01" ixy="0" ixz="0" iyy="0.01" iyz="0" izz="0.01"/>
       <origin xyz="0 0 ${-cylinder_length/2- sphere_radius}" rpy="0 0 0"/>
     </inertial>
   </link>
@@ -117,17 +117,17 @@
     <!-- Enable self-collision for this segment -->
   <gazebo reference="${name}_sphere">
     <material>Gazebo/Gray</material>
-    <selfCollide>true</selfCollide>
+    <selfCollide>false</selfCollide>
   </gazebo>
 
   <gazebo reference="${name}_cylinder">
-    <material>Gazebo/Blue</material>
-    <selfCollide>true</selfCollide>
+    <material>Gazebo/Gray</material>
+    <selfCollide>false</selfCollide>
   </gazebo>
   </xacro:macro>
 
   <!-- Create 50 segments -->
-  <xacro:cable_segment name="segment_1" parent="base_link"/>
+  <xacro:cable_segment name="segment_1" parent="mooring/base_link"/>
   <xacro:cable_segment name="segment_2" parent="segment_1_cylinder"/>
   <xacro:cable_segment name="segment_3" parent="segment_2_cylinder"/>
   <xacro:cable_segment name="segment_4" parent="segment_3_cylinder"/>
@@ -177,8 +177,56 @@
   <xacro:cable_segment name="segment_48" parent="segment_47_cylinder"/>
   <xacro:cable_segment name="segment_49" parent="segment_48_cylinder"/>
   <xacro:cable_segment name="segment_50" parent="segment_49_cylinder"/>
-
-
+  <xacro:cable_segment name="segment_51" parent="segment_50_cylinder"/>
+  <xacro:cable_segment name="segment_52" parent="segment_51_cylinder"/>
+  <xacro:cable_segment name="segment_53" parent="segment_52_cylinder"/>
+  <xacro:cable_segment name="segment_54" parent="segment_53_cylinder"/>
+  <xacro:cable_segment name="segment_55" parent="segment_54_cylinder"/>
+  <xacro:cable_segment name="segment_56" parent="segment_55_cylinder"/>
+  <xacro:cable_segment name="segment_57" parent="segment_56_cylinder"/>
+  <xacro:cable_segment name="segment_58" parent="segment_57_cylinder"/>
+  <xacro:cable_segment name="segment_59" parent="segment_58_cylinder"/>
+  <xacro:cable_segment name="segment_60" parent="segment_59_cylinder"/>
+  <xacro:cable_segment name="segment_61" parent="segment_60_cylinder"/>
+  <xacro:cable_segment name="segment_62" parent="segment_61_cylinder"/>
+  <xacro:cable_segment name="segment_63" parent="segment_62_cylinder"/>
+  <xacro:cable_segment name="segment_64" parent="segment_63_cylinder"/>
+  <xacro:cable_segment name="segment_65" parent="segment_64_cylinder"/>
+  <xacro:cable_segment name="segment_66" parent="segment_65_cylinder"/>
+  <xacro:cable_segment name="segment_67" parent="segment_66_cylinder"/>
+  <xacro:cable_segment name="segment_68" parent="segment_67_cylinder"/>
+  <xacro:cable_segment name="segment_69" parent="segment_68_cylinder"/>
+  <xacro:cable_segment name="segment_70" parent="segment_69_cylinder"/>
+  <xacro:cable_segment name="segment_71" parent="segment_70_cylinder"/>
+  <xacro:cable_segment name="segment_72" parent="segment_71_cylinder"/>
+  <xacro:cable_segment name="segment_73" parent="segment_72_cylinder"/>
+  <xacro:cable_segment name="segment_74" parent="segment_73_cylinder"/>
+  <xacro:cable_segment name="segment_75" parent="segment_74_cylinder"/>
+  <xacro:cable_segment name="segment_76" parent="segment_75_cylinder"/>
+  <xacro:cable_segment name="segment_77" parent="segment_76_cylinder"/>
+  <xacro:cable_segment name="segment_78" parent="segment_77_cylinder"/>
+  <xacro:cable_segment name="segment_79" parent="segment_78_cylinder"/>
+  <xacro:cable_segment name="segment_80" parent="segment_79_cylinder"/>
+  <xacro:cable_segment name="segment_81" parent="segment_80_cylinder"/>
+  <xacro:cable_segment name="segment_82" parent="segment_81_cylinder"/>
+  <xacro:cable_segment name="segment_83" parent="segment_82_cylinder"/>
+  <xacro:cable_segment name="segment_84" parent="segment_83_cylinder"/>
+  <xacro:cable_segment name="segment_85" parent="segment_84_cylinder"/>
+  <xacro:cable_segment name="segment_86" parent="segment_85_cylinder"/>
+  <xacro:cable_segment name="segment_87" parent="segment_86_cylinder"/>
+  <xacro:cable_segment name="segment_88" parent="segment_87_cylinder"/>
+  <xacro:cable_segment name="segment_89" parent="segment_88_cylinder"/>
+  <xacro:cable_segment name="segment_90" parent="segment_89_cylinder"/>
+  <xacro:cable_segment name="segment_91" parent="segment_90_cylinder"/>
+  <xacro:cable_segment name="segment_92" parent="segment_91_cylinder"/>
+  <xacro:cable_segment name="segment_93" parent="segment_92_cylinder"/>
+  <xacro:cable_segment name="segment_94" parent="segment_93_cylinder"/>
+  <xacro:cable_segment name="segment_95" parent="segment_94_cylinder"/>
+  <xacro:cable_segment name="segment_96" parent="segment_95_cylinder"/>
+  <xacro:cable_segment name="segment_97" parent="segment_96_cylinder"/>
+  <xacro:cable_segment name="segment_98" parent="segment_97_cylinder"/>
+  <xacro:cable_segment name="segment_99" parent="segment_98_cylinder"/>
+  <xacro:cable_segment name="segment_100" parent="segment_99_cylinder"/>
 
 
   <!-- add one sphere at the end -->
@@ -189,19 +237,19 @@
       </geometry>
       <material name="gray"/>
     </visual>
-    <collision>
+    <!-- <collision>
       <geometry>
         <sphere radius="${sphere_radius}"/>
       </geometry>
-    </collision>
+    </collision> -->
     <inertial>
-      <mass value="0.005"/>
-      <inertia ixx="0.0001" ixy="0" ixz="0" iyy="0.0001" iyz="0" izz="0.0001"/>
+      <mass value="0.001"/>
+      <inertia ixx="0.001" ixy="0" ixz="0" iyy="0.001" iyz="0" izz="0.001"/>
     </inertial>
   </link>
 
   <joint name="joint_end_sphere" type="revolute">
-    <parent link="segment_50_cylinder"/>
+    <parent link="segment_100_cylinder"/>
     <child link="end_sphere"/>
     <origin xyz="0 0 ${-cylinder_length - 2 * sphere_radius}" rpy="0 0 0"/>
     <axis xyz="0 1 0"/>
@@ -210,15 +258,11 @@
   </joint>
 
   <gazebo>
-
     <plugin name="cable_vel_control_plugin" filename="libcable_vel_control_plugin.so">
       <!-- <ros_topic>/target_position</ros_topic> -->
       <link_name>end_sphere</link_name>
     </plugin>
-
-
-
-    <self_collide>true</self_collide>
+    <self_collide>false</self_collide>
     <!-- <static>true</static> -->
   </gazebo>
 

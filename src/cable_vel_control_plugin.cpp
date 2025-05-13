@@ -137,8 +137,8 @@ namespace gazebo
             this->prevError = this->error;
 
             // Publish the current position
-            ROS_INFO("Current position: %f, %f, %f", this->link->WorldPose().Pos().X(), this->link->WorldPose().Pos().Y(), this->link->WorldPose().Pos().Z());
-            ROS_INFO("Control input: %f, %f, %f", this->controlInput.X(), this->controlInput.Y(), this->controlInput.Z());
+            // ROS_INFO("Current position: %f, %f, %f", this->link->WorldPose().Pos().X(), this->link->WorldPose().Pos().Y(), this->link->WorldPose().Pos().Z());
+            // ROS_INFO("Control input: %f, %f, %f", this->controlInput.X(), this->controlInput.Y(), this->controlInput.Z());
         }
         void OnRosMsg(const geometry_msgs::Point::ConstPtr &_msg)
         {
